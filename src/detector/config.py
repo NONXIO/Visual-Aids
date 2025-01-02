@@ -1,13 +1,12 @@
 # src/detector/config.py
 from pathlib import Path
-import os
-
 
 class DetectorConfig:
     """YOLO检测器配置"""
 
     # 模型配置
-    MODEL_PATH = Path("../../models/yolov8n.pt")  # 使用YOLOv8n作为默认模型
+    MODEL_NAME = "yolo11s"  # 使用yolo11s作为默认模型
+    MODEL_PATH = Path(f"../../models/{MODEL_NAME}.pt")  # 模型文件路径
     CONFIDENCE_THRESHOLD = 0.5  # 置信度阈值
 
     # 推理配置

@@ -1,9 +1,9 @@
+# src/camera/camera.py
 import cv2
 import threading
 from queue import Queue
 from .config import CameraConfig
 from src.utils.logger import setup_logger
-
 
 class Camera:
     """相机类，负责视频捕获和预处理"""

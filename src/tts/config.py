@@ -1,3 +1,4 @@
+# src/tts/config.py
 import os
 
 class TTSConfig:

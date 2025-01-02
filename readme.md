@@ -1,4 +1,3 @@
-
 # Visual-Aids: 为视障人士提供视觉辅助的系统
 
 ## **项目概述**
@@ -6,12 +5,10 @@ Visual-Aids 项目旨在帮助视障人士日常出行和活动。通过实时�
 
 ### **核心功能**
 - **实时目标检测**：识别用户路径中的障碍物、车辆和其他物体。
-- **文本识别（待实现）**：识别环境中的文本，例如公交车号、地铁标志等。
+- **文本识别**：识别环境中的文本，例如公交车号、地铁标志等。
 - **语音输出**：将检测到的物体或识别到的文本转化为语音，帮助用户理解周围环境。
 - **路径导航（待实现）**：规划步行路径，用户偏离路径时提供提醒。
-- **轻量化部署**：使用轻量化模型（如 YOLOv8n）和量化技术，优化移动设备的性能。
-
-
+- **轻量化部署**：使用轻量化模型（如 YOLOv11s）和量化技术，优化移动设备的性能。
 
 ## **项目结构**
 
@@ -41,7 +38,8 @@ Visual-Aids
 │   │
 │   ├── ocr/               # 文本识别模块（OCR）
 │   │   ├── __init__.py
-│   │   ├── ocr.py
+│   │   ├── ocr.py         # OCR 功能实现
+│   │   ├── config.py      # OCR 配置文件
 │   │
 │   ├── tts/               # 文字转语音模块（TTS）
 │   │   ├── __init__.py
@@ -82,7 +80,7 @@ Visual-Aids
 ### **2. 目标检测模块**
 - **用途**：使用 YOLO 模型对视频帧中的目标进行检测。
 - **关键文件**：
-  - `yolo.py`: 基于 YOLOv8n 实现目标检测。
+  - `yolo.py`: 基于 YOLOv11s 实现目标检测。
   - `config.py`: 定义检测配置（如模型路径、信度阈值）。
 - **功能**：
   - 轻量化 YOLO 模型，支持实时检测。
@@ -91,13 +89,42 @@ Visual-Aids
 
 ---
 
-### **3. 文本识别模块（待实现）**
+### **3. 文本识别模块（OCR）**
 - **用途**：从视频帧中识别文本信息，例如公交车号和地铁标志。
 - **关键文件**：
-  - `ocr.py`: 使用 Tesseract 或 PaddleOCR 实现 OCR 功能。
+  - `ocr.py`: 使用 Tesseract 或 PaddleOCR 实现 OCR 功能。默认使用 Tesseract OCR
+  - `config.py`: 包含 OCR 模块的配置。
 - **功能**：
-  - 将帧中的文本转换为字符串。
+  - 自动从检测到的区域提取文本。
   - 支持多语种文本识别（如中文、英文）。
+  - 提供预处理功能以提升识别准确率。
+
+#### **OCR 安装指南**
+默认使用 Tesseract OCR
+1. **Tesseract OCR**：
+   - Windows 用户：从 [Tesseract GitHub 页面](https://github.com/UB-Mannheim/tesseract/wiki) 下载最新的安装包。
+     - 安装路径建议使用默认值（如 `C:\Program Files\Tesseract-OCR`）。
+     - 将安装路径添加到系统的 PATH 环境变量中。
+   - Linux 用户：
+     ```bash
+     sudo apt update
+     sudo apt install tesseract-ocr
+     ```
+   - Mac 用户：
+     ```bash
+     brew install tesseract
+     ```
+   - 安装完成后运行以下命令验证：
+     ```bash
+     tesseract --version
+     ```
+
+2. **PaddleOCR（可选）**：
+   - 安装 PaddleOCR：
+     ```bash
+     pip install paddleocr
+     ```
+   - 如需 GPU 加速，请参考 [PaddleOCR 文档](https://github.com/PaddlePaddle/PaddleOCR)。
 
 ---
 
@@ -153,9 +180,9 @@ Visual-Aids
 - 相机捕获和预处理。
 - 使用 YOLO 进行目标检测。
 - 集成文字转语音模块，提供实时语音反馈。
+- 实现 OCR 功能，用于文本识别。
 
 ### **未来计划**
-- 实现 OCR 功能，用于文本识别。
 - 增加导航功能，提供路径偏离提醒。
 - 优化模块以支持移动端部署（如 TensorFlow Lite 和 ONNX）。
 
@@ -170,7 +197,7 @@ Visual-Aids
 
 2. **准备环境**：
    - 确保 YOLO 模型文件位于 `models/` 目录中。
-   - 安装必要的文字转语音依赖。
+   - 安装必要的文字转语音和 OCR 依赖。
 
 3. **运行程序**：
    ```bash
@@ -189,4 +216,3 @@ Visual-Aids
 
 ## **许可证**
 本项目基于 MIT 许可证开源，详情请参阅 `LICENSE` 文件。
-

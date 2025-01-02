@@ -1,15 +1,14 @@
+# src/tts/tts.py
 import os
 import tempfile
 import subprocess
 import pyttsx3
 import threading
-import logging
 import time
-
 from gtts import gTTS
 from src.tts.config import TTSConfig
+from src.utils.logger import setup_logger
 
-logger = logging.getLogger("TTS")
 
 
 class TextToSpeech:
@@ -21,6 +20,8 @@ class TextToSpeech:
     """
 
     def __init__(self):
+        self.logger = setup_logger("TTS")
+
         self.language = TTSConfig.DEFAULT_LANGUAGE
         # 是否优先使用在线 TTS（可在 config 里配置，也可在运行时修改）
         self.use_online_tts_first = TTSConfig.USE_ONLINE_TTS_FIRST
@@ -49,13 +50,13 @@ class TextToSpeech:
             for voice in voices:
                 if TTSConfig.DEFAULT_VOICE_NAME in voice.name:
                     self.engine.setProperty('voice', voice.id)
-                    logger.debug(f"已设置 pyttsx3 语音: {voice.name}")
+                    self.logger.debug(f"已设置 pyttsx3 语音: {voice.name}")
                     break
             else:
-                logger.warning(f"未找到指定的语音 '{TTSConfig.DEFAULT_VOICE_NAME}'，使用默认: {voices[0].name}")
+                self.logger.warning(f"未找到指定的语音 '{TTSConfig.DEFAULT_VOICE_NAME}'，使用默认: {voices[0].name}")
 
         except Exception as e:
-            logger.error(f"[TTS 错误] 初始化 pyttsx3 失败: {str(e)}")
+            self.logger.error(f"[TTS 错误] 初始化 pyttsx3 失败: {str(e)}")
             self.engine = None
 
     def speak(self, text: str, speed: float = TTSConfig.DEFAULT_PLAYBACK_SPEED):
@@ -105,7 +106,7 @@ class TextToSpeech:
             return True
 
         except Exception as e:
-            logger.error(f"[TTS 错误] gTTS + ffplay 播放失败，将尝试离线 TTS: {str(e)}")
+            self.logger.error(f"[TTS 错误] gTTS + ffplay 播放失败，将尝试离线 TTS: {str(e)}")
             return False
 
     def _play_audio_with_ffplay(self, audio_path: str, speed: float):
@@ -138,7 +139,7 @@ class TextToSpeech:
                 # 播放已结束
                 break
             if time.time() - start_time > 15:  # 你也可调大或写到 config
-                logger.warning("ffplay 播放超时，强制终止进程")
+                self.logger.warning("ffplay 播放超时，强制终止进程")
                 self._terminate_ffplay()
                 break
             time.sleep(0.1)
@@ -156,17 +157,17 @@ class TextToSpeech:
                     self.current_process.terminate()
                     self.current_process.wait(timeout=1.0)
                 except Exception as e:
-                    logger.error(f"终止 ffplay 进程失败: {e}")
+                    self.logger.error(f"终止 ffplay 进程失败: {e}")
                     self.current_process.kill()
                 finally:
-                    logger.debug("ffplay 进程已被终止")
+                    self.logger.debug("ffplay 进程已被终止")
 
     def _speak_offline(self, text: str):
         """
         离线 TTS：使用 pyttsx3
         """
         if not self.engine:
-            logger.error("pyttsx3 引擎初始化失败，无法离线播报！")
+            self.logger.error("pyttsx3 引擎初始化失败，无法离线播报！")
             return
 
         with self.engine_lock:
@@ -174,7 +175,7 @@ class TextToSpeech:
                 self.engine.say(text)
                 self.engine.runAndWait()
             except Exception as e:
-                logger.error(f"[TTS 错误] pyttsx3 播报失败: {str(e)}")
+                self.logger.error(f"[TTS 错误] pyttsx3 播报失败: {str(e)}")
 
     def stop(self):
         """
@@ -191,6 +192,6 @@ class TextToSpeech:
                     try:
                         self.engine.stop()
                     except Exception as e:
-                        logger.error(f"停止 pyttsx3 引擎失败: {str(e)}")
+                        self.logger.error(f"停止 pyttsx3 引擎失败: {str(e)}")
                     finally:
                         self.speaking = False

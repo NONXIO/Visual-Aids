@@ -18,6 +18,15 @@ def setup_logger(name):
 
     # 创建日志记录器
     logger = logging.getLogger(name)
+
+    # 禁止日志向上层 logger 传递（避免和 root logger 重复输出）
+    logger.propagate = False
+
+    # 若已有 handler，先清空
+    if logger.hasHandlers():
+        logger.handlers.clear()
+
+    # 设置日志等级
     logger.setLevel(getattr(logging, LOG_CONFIG['level']))
 
     # 创建文件处理器

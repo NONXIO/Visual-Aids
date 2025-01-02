@@ -1,10 +1,8 @@
+# src/tts/TTSEngine.py
 import threading
 import queue
-import logging
 from .tts import TextToSpeech
-
-logger = logging.getLogger("TTSEngine")
-
+from src.utils.logger import setup_logger
 
 class TTSEngine:
     """
@@ -15,6 +13,8 @@ class TTSEngine:
     """
 
     def __init__(self):
+        self.logger = setup_logger("TTSEngine")
+
         # 初始化 TTS 播报器
         self.tts = TextToSpeech()
         # 存放待播报文本的队列
@@ -45,7 +45,7 @@ class TTSEngine:
         子线程函数：持续从队列中获取需要播报的文本，逐条调用 self.tts.speak().
         如果 stop_event 被设置，就退出循环。
         """
-        logger.info("TTS 工作线程启动。")
+        self.logger.info("TTS 工作线程启动。")
         while not self.stop_event.is_set():
             try:
                 # 设一个小超时，避免一直阻塞
@@ -59,12 +59,12 @@ class TTSEngine:
                 try:
                     self.tts.speak(text)
                 except Exception as e:
-                    logger.error(f"处理文本 '{text}' 时发生错误: {str(e)}")
+                    self.logger.error(f"处理文本 '{text}' 时发生错误: {str(e)}")
                 finally:
                     self.is_speaking.clear()
                 self.queue.task_done()
 
-        logger.info("TTS 工作线程检测到停止事件，已退出。")
+        self.logger.info("TTS 工作线程检测到停止事件，已退出。")
 
     def stop(self):
         """
@@ -74,7 +74,7 @@ class TTSEngine:
           - 停止正在进行的音频播放（ffplay / pyttsx3）；
           - join 子线程，等待退出。
         """
-        logger.info("正在停止 TTS 引擎...")
+        self.logger.info("正在停止 TTS 引擎...")
         # 通知子线程退出循环
         self.stop_event.set()
 
@@ -94,8 +94,8 @@ class TTSEngine:
         if self.worker_thread.is_alive():
             self.worker_thread.join(timeout=5.0)
             if self.worker_thread.is_alive():
-                logger.warning("TTS 工作线程未能在超时时间内正常退出，可能还在阻塞。")
+                self.logger.warning("TTS 工作线程未能在超时时间内正常退出，可能还在阻塞。")
             else:
-                logger.info("TTS 工作线程已退出。")
+                self.logger.info("TTS 工作线程已退出。")
 
-        logger.info("TTS 引擎已停止。")
+        self.logger.info("TTS 引擎已停止。")

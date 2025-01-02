@@ -2,11 +2,11 @@ import sys
 import time
 import cv2
 import traceback
-
 from src.camera import Camera
 from src.detector.yolo import ObjectDetector
 from src.tts.TTSEngine import TTSEngine
 from src.utils.logger import setup_logger
+from src.ocr.ocr import OCR
 
 
 def check_camera_availability():
@@ -47,6 +47,11 @@ def main():
         tts_engine = TTSEngine()
         logger.info("TTS 引擎初始化成功")
 
+        # 初始化 OCR 模块
+        logger.info("初始化 OCR 模块...")
+        ocr = OCR()
+        logger.info("OCR 模块初始化成功")
+
     except Exception as e:
         logger.error(f"初始化模块时发生错误: {str(e)}\n{traceback.format_exc()}")
         return
@@ -73,8 +78,18 @@ def main():
                         cls = detection['class']
                         confidence = detection['confidence']
                         distance = detection['distance']
-                        descriptions.append(f"{cls}，距离 {distance} 米")
-                        print(f"检测到 {cls}，置信度：{confidence:.2f}，距离：{distance} 米")
+
+                        # 提取检测区域的文本
+                        x1, y1, x2, y2 = map(int, detection['bbox'])
+                        cropped_region = frame[y1:y2, x1:x2]
+                        text = ocr.extract_text(cropped_region)
+
+                        if text:
+                            descriptions.append(f"{cls}，距离 {distance} 米，识别到文本: {text}")
+                            print(f"检测到 {cls}，置信度：{confidence:.2f}，距离：{distance} 米，文本：{text}")
+                        else:
+                            descriptions.append(f"{cls}，距离 {distance} 米")
+                            print(f"检测到 {cls}，置信度：{confidence:.2f}，距离：{distance} 米")
 
                     # 拼接成一句话，加入 TTS 队列
                     speech_text = "检测到：" + "，".join(descriptions)

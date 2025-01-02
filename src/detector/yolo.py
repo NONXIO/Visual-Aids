@@ -1,4 +1,6 @@
+# src/detector/yolo.py
 from ultralytics import YOLO
+from pathlib import Path
 import numpy as np
 import cv2
 from typing import List, Dict, Union
@@ -19,19 +21,19 @@ class ObjectDetector:
         self.config = config or DetectorConfig()
         self.logger = setup_logger('detector')
 
-        # 确保模型文件存在
-        if not self.config.MODEL_PATH.exists():
-            self.logger.warning(f"模型文件不存在: {self.config.MODEL_PATH}")
-            self.logger.info("正在下载YOLOv8n模型...")
-            self.config.MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
-
         try:
-            # 加载YOLO模型
+            # 自动加载或下载模型
             self.model = YOLO(self.config.MODEL_PATH)
             self.logger.info(f"成功加载模型: {self.config.MODEL_PATH}")
         except Exception as e:
-            self.logger.error(f"模型加载失败: {str(e)}")
-            raise
+            self.logger.warning(f"尝试加载模型失败: {str(e)}")
+            self.logger.info(f"尝试直接通过 ultralytics 自动下载模型 {self.config.MODEL_NAME}...")
+            try:
+                self.model = YOLO(self.config.MODEL_NAME)  # ultralytics 会自动下载模型
+                self.logger.info(f"成功通过 ultralytics 下载并加载模型: {self.config.MODEL_NAME}")
+            except Exception as ex:
+                self.logger.error(f"自动下载并加载模型失败: {str(ex)}")
+                raise RuntimeError(f"无法加载模型: {str(ex)}")
 
     @staticmethod
     def estimate_distance(bbox, frame_width, focal_length=500, real_object_width=0.5):

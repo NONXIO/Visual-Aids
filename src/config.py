@@ -1,3 +1,4 @@
+# src/config.py
 import os
 
 # 项目根目录
