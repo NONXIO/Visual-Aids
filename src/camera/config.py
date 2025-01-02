@@ -1,3 +1,4 @@
+# src/camera/config.py
 class CameraConfig:
     """相机模块配置"""
 

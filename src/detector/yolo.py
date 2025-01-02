@@ -33,15 +33,36 @@ class ObjectDetector:
             self.logger.error(f"模型加载失败: {str(e)}")
             raise
 
-    def detect(self, frame: np.ndarray) -> List[Dict[str, Union[str, float, List[float]]]]:
+    @staticmethod
+    def estimate_distance(bbox, frame_width, focal_length=500, real_object_width=0.5):
         """
-        对输入帧进行目标检测
+        根据边界框估算目标与摄像头的距离。
 
         Args:
-            frame: 输入图像帧 (BGR格式)
+            bbox (List[float]): 边界框 [x1, y1, x2, y2]。
+            frame_width (int): 图像帧的宽度。
+            focal_length (float): 摄像头的焦距，默认值为 500。
+            real_object_width (float): 目标物体的实际宽度（单位：米），默认值为 0.5。
 
         Returns:
-            检测到的目标列表，每个目标包含类别、置信度和边界框信息
+            float: 估算的距离（单位：米）。
+        """
+        object_width_in_pixels = bbox[2] - bbox[0]
+        if object_width_in_pixels == 0:
+            return float('inf')  # 防止除零错误
+
+        distance = (real_object_width * focal_length) / object_width_in_pixels
+        return round(distance, 2)  # 保留两位小数
+
+    def detect(self, frame: np.ndarray) -> List[Dict[str, Union[str, float, List[float]]]]:
+        """
+        对输入帧进行目标检测，并估算每个目标的距离。
+
+        Args:
+            frame: 输入图像帧 (BGR格式)。
+
+        Returns:
+            List[Dict[str, Union[str, float, List[float]]]]: 检测结果列表。
         """
         try:
             # 运行推理
@@ -68,11 +89,20 @@ class ObjectDetector:
                     confidence = float(box.conf[0])
                     xyxy = box.xyxy[0].tolist()  # 转换为列表格式
 
+                    # 估算目标距离
+                    distance = self.estimate_distance(
+                        bbox=xyxy,
+                        frame_width=frame.shape[1],  # 使用当前帧的宽度
+                        focal_length=500,  # 摄像头焦距
+                        real_object_width=0.5  # 目标实际宽度（根据目标类型调整）
+                    )
+
                     # 添加到检测结果
                     detection = {
                         'class': cls_name,
                         'confidence': confidence,
-                        'bbox': xyxy  # [x1, y1, x2, y2]
+                        'bbox': xyxy,  # [x1, y1, x2, y2]
+                        'distance': distance  # 距离（单位：米）
                     }
                     detections.append(detection)
 

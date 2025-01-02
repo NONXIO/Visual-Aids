@@ -1,3 +1,4 @@
+# src/detector/config.py
 from pathlib import Path
 import os
 

@@ -2,9 +2,22 @@
 python == 3.9.21
 
 # Core dependencies
-opencv == 4.10.0
 numpy == 2.0.2
+opencv == 4.10.0
+pandas == 2.2.3
+
+# Visualization dependencies
+matplotlib == 3.9.4
+seaborn == 0.13.2
 
 # Detection dependencies
-ultralytics == 8.3.54
 torch == 2.3.1
+torchvision == 0.18.1
+ultralytics == 8.3.54
+ultralytics-thop == 2.0.13
+
+# TTS dependencies
+pyttsx3 == 2.98
+pydub == 0.25.1
+gTTS == 2.5.4
+
