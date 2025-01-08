@@ -16,8 +16,7 @@ class DetectorConfig:
 
     # 目标配置 - 主要关注户外场景中的重要物体
     TARGET_CLASSES = [
-        'person', 'bicycle', 'car', 'motorcycle', 'bus', 'truck',
-        'traffic light', 'stop sign', 'bench', 'dog', 'cat'
+       'bus','person','bicycle','car','motorbike','truck','traffic light','stop sign','fire hydrant','parking meter','bench','bird','cat','dog','horse','sheep','cow','elephant','bear','zebra','giraffe','backpack','umbrella','handbag','tie','suitcase','frisbee','skis','snowboard','sports ball','kite','baseball bat','baseball glove','skateboard','surfboard','tennis racket','bottle','wine glass','cup','fork','knife','spoon','bowl','banana','apple','sandwich','orange','broccoli','carrot','hot dog','pizza','donut','cake','chair','sofa','pottedplant','bed','diningtable','toilet','tvmonitor','laptop','mouse','remote','keyboard','cell phone','microwave','oven','toaster','sink','refrigerator','book','clock','vase','scissors','teddy bear','hair drier','toothbrush'
     ]
 
     # 处理配置

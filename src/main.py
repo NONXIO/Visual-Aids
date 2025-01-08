@@ -2,43 +2,18 @@ import sys
 import time
 import cv2
 import traceback
-from src.camera import Camera
 from src.detector.yolo import ObjectDetector
 from src.tts.TTSEngine import TTSEngine
 from src.utils.logger import setup_logger
 from src.ocr.ocr import OCR
-
-
-def check_camera_availability():
-    """检查相机是否可用"""
-    while True:
-        try:
-            cap = cv2.VideoCapture(0)
-            if cap.isOpened():
-                cap.release()
-                return
-            else:
-                raise Exception("相机被占用")
-        except Exception:
-            print("[警告] 相机被占用，等待释放...")
-            time.sleep(1)  # 等待 1 秒后重试
-
+from queue import Queue
 
 def main():
     # 初始化日志
     logger = setup_logger('main')
 
-    # 检查相机可用性
-    logger.info("检查相机是否可用...")
-    check_camera_availability()
-
     # 初始化模块
     try:
-        logger.info("初始化相机...")
-        camera = Camera()
-        camera.start()
-        logger.info("相机初始化成功")
-
         logger.info("初始化目标检测器...")
         detector = ObjectDetector()
         logger.info("目标检测器初始化成功")
@@ -47,59 +22,69 @@ def main():
         tts_engine = TTSEngine()
         logger.info("TTS 引擎初始化成功")
 
-        # 初始化 OCR 模块
         logger.info("初始化 OCR 模块...")
         ocr = OCR()
         logger.info("OCR 模块初始化成功")
 
     except Exception as e:
-        logger.error(f"初始化模块时发生错误: {str(e)}\n{traceback.format_exc()}")
+        logger.error(f"初始化模块时发生错误: {str(e)}\\n{traceback.format_exc()}")
         return
 
     # 创建窗口
     window_name = "Visual Aids"
     cv2.namedWindow(window_name, cv2.WINDOW_NORMAL | cv2.WINDOW_GUI_EXPANDED)
 
+    # 使用视频文件代替相机输入
+    video_path = "test.mp4"
+    cap = cv2.VideoCapture(video_path)
+
+    if not cap.isOpened():
+        logger.error(f"无法打开视频文件: {video_path}")
+        return
+
+    tts_queue = Queue(maxsize=1)  # 限制队列长度为1
+
     try:
         logger.info("开始检测循环...")
         while True:
-            # 从相机获取帧
-            frame = camera.get_frame()
+            ret, frame = cap.read()
 
-            # 如果成功获取帧
-            if frame is not None:
-                # 运行目标检测
-                detections = detector.detect(frame)
+            if not ret:
+                logger.info("视频播放结束或读取帧失败")
+                break
 
-                # 如果有检测结果
-                if detections:
-                    descriptions = []
-                    for detection in detections:
-                        cls = detection['class']
-                        confidence = detection['confidence']
-                        distance = detection['distance']
+            # 运行目标检测
+            detections = detector.detect(frame)
 
-                        # 提取检测区域的文本
-                        x1, y1, x2, y2 = map(int, detection['bbox'])
-                        cropped_region = frame[y1:y2, x1:x2]
-                        text = ocr.extract_text(cropped_region)
+            # 如果有检测结果
+            if detections:
+                descriptions = []
+                for detection in detections:
+                    cls = detection['class']
+                    distance = detection['distance']
+                    descriptions.append(f"{cls}，{distance}米")
 
-                        if text:
-                            descriptions.append(f"{cls}，距离 {distance} 米，识别到文本: {text}")
-                            print(f"检测到 {cls}，置信度：{confidence:.2f}，距离：{distance} 米，文本：{text}")
-                        else:
-                            descriptions.append(f"{cls}，距离 {distance} 米")
-                            print(f"检测到 {cls}，置信度：{confidence:.2f}，距离：{distance} 米")
+                # 拼接检测结果
+                speech_text = "检测到：" + "，".join(descriptions)
 
-                    # 拼接成一句话，加入 TTS 队列
-                    speech_text = "检测到：" + "，".join(descriptions)
-                    tts_engine.speak(speech_text)
+                # 清空旧的TTS队列，只保留最新检测结果
+                if not tts_queue.empty():
+                    try:
+                        tts_queue.get_nowait()
+                    except Queue.Empty:
+                        pass
 
-                # 绘制检测结果
-                display_frame = detector.draw_detections(frame, detections)
+                tts_queue.put(speech_text)
 
-                # 显示处理后的帧
-                cv2.imshow(window_name, display_frame)
+                # 启动异步TTS播放
+                if tts_queue.qsize() == 1:
+                    tts_engine.speak_async(tts_queue.get())
+
+            # 绘制检测结果
+            display_frame = detector.draw_detections(frame, detections)
+
+            # 显示处理后的帧
+            cv2.imshow(window_name, display_frame)
 
             # 检查键盘事件，等待 1 毫秒
             key = cv2.waitKey(1) & 0xFF
@@ -112,7 +97,7 @@ def main():
     except KeyboardInterrupt:
         logger.info("检测循环因键盘中断而停止...")
     except Exception as e:
-        logger.error(f"检测循环中发生错误: {str(e)}\n{traceback.format_exc()}")
+        logger.error(f"检测循环中发生错误: {str(e)}\\n{traceback.format_exc()}")
     finally:
         logger.info("清理资源...")
         try:
@@ -120,10 +105,9 @@ def main():
             if 'tts_engine' in locals():
                 tts_engine.stop()
 
-            # 关闭窗口和停止相机
+            # 关闭窗口和释放视频资源
             cv2.destroyAllWindows()
-            if 'camera' in locals():
-                camera.stop()
+            cap.release()
 
             # 确保窗口真正关闭
             for _ in range(5):
@@ -131,10 +115,9 @@ def main():
 
             logger.info("资源清理完成")
         except Exception as e:
-            logger.error(f"清理资源时发生错误: {str(e)}\n{traceback.format_exc()}")
+            logger.error(f"清理资源时发生错误: {str(e)}\\n{traceback.format_exc()}")
         finally:
             sys.exit(0)
-
 
 if __name__ == "__main__":
     main()

@@ -8,9 +8,9 @@ class TTSConfig:
     DEFAULT_VOICE_NAME = "Microsoft Huihui Desktop - Chinese (Simplified)"
 
     # 默认 pyttsx3 语速
-    DEFAULT_RATE = 150
+    DEFAULT_RATE = 175
     # gTTS 播放速度（通过 ffplay 的 atempo 调整，范围 ~0.5~2.0）
-    DEFAULT_PLAYBACK_SPEED = 1.5
+    DEFAULT_PLAYBACK_SPEED = 1.75
 
     # 默认音量
     DEFAULT_VOLUME = 1.0
