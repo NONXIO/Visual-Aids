@@ -1,11 +1,11 @@
 # src/detector/yolo.py
 from ultralytics import YOLO
-from pathlib import Path
 import numpy as np
 import cv2
 from typing import List, Dict, Union
-from .config import DetectorConfig
+from .yolo_config import DetectorConfig
 from src.utils.logger import setup_logger
+import time
 
 
 class ObjectDetector:
@@ -18,43 +18,48 @@ class ObjectDetector:
         Args:
             config: 检测器配置，如果为None则使用默认配置
         """
-        self.config = config or DetectorConfig()
-        self.logger = setup_logger('detector')
+        self.config = config or DetectorConfig()  # 如果未提供配置，则使用默认配置
+        self.logger = setup_logger('detector')  # 设置日志记录器
 
         try:
-            # 自动加载或下载模型
+            # 尝试加载本地模型
             self.model = YOLO(self.config.MODEL_PATH)
             self.logger.info(f"成功加载模型: {self.config.MODEL_PATH}")
         except Exception as e:
+            # 如果本地加载失败，尝试在线下载模型
             self.logger.warning(f"尝试加载模型失败: {str(e)}")
             self.logger.info(f"尝试直接通过 ultralytics 自动下载模型 {self.config.MODEL_NAME}...")
             try:
-                self.model = YOLO(self.config.MODEL_NAME)  # ultralytics 会自动下载模型
+                self.model = YOLO(self.config.MODEL_NAME)  # 自动下载并加载模型
                 self.logger.info(f"成功通过 ultralytics 下载并加载模型: {self.config.MODEL_NAME}")
             except Exception as ex:
-                self.logger.error(f"自动下载并加载模型失败: {str(ex)}")
+                # 如果在线下载也失败，则抛出错误
+                self.logger.error(f"无法加载模型: {str(ex)}, 类型: {type(ex).__name__}")
                 raise RuntimeError(f"无法加载模型: {str(ex)}")
 
     @staticmethod
-    def estimate_distance(bbox, frame_width, focal_length=500, real_object_width=0.5):
+    def estimate_distance(bbox, frame_width, focal_length=500, cls_name=None):
         """
         根据边界框估算目标与摄像头的距离。
 
         Args:
             bbox (List[float]): 边界框 [x1, y1, x2, y2]。
             frame_width (int): 图像帧的宽度。
-            focal_length (float): 摄像头的焦距，默认值为 500。
-            real_object_width (float): 目标物体的实际宽度（单位：米），默认值为 0.5。
+            focal_length (float): 摄像头的焦距。
+            cls_name (str): 目标物体类别。
 
         Returns:
             float: 估算的距离（单位：米）。
         """
-        object_width_in_pixels = bbox[2] - bbox[0]
+        object_width_in_pixels = bbox[2] - bbox[0]  # 计算物体在图像中的宽度
         if object_width_in_pixels == 0:
             return float('inf')  # 防止除零错误
 
+        # 获取物体的实际宽度（如果类别未知，使用默认值）
+        real_object_width = DetectorConfig.OBJECT_REAL_WIDTHS.get(cls_name, 0.5)
+        # 使用公式计算距离
         distance = (real_object_width * focal_length) / object_width_in_pixels
-        return round(distance, 2)  # 保留两位小数
+        return round(distance, 2)  # 返回保留两位小数的距离
 
     def detect(self, frame: np.ndarray) -> List[Dict[str, Union[str, float, List[float]]]]:
         """
@@ -67,39 +72,47 @@ class ObjectDetector:
             List[Dict[str, Union[str, float, List[float]]]]: 检测结果列表。
         """
         try:
-            # 运行推理
+            # 将单帧复制为批量帧
+            frames = [frame] * self.config.BATCH_SIZE
+            self.logger.info(f"推理设备: {self.config.DEVICE}")
+            start_time = time.time()  # 记录推理开始时间
+
+            # 执行推理
             results = self.model(
-                frame,
-                conf=self.config.CONFIDENCE_THRESHOLD,
-                device=self.config.DEVICE
+                frames,  # 输入批量帧
+                conf=self.config.CONFIDENCE_THRESHOLD,  # 置信度阈值
+                device=self.config.DEVICE  # 推理设备
             )
+            end_time = time.time()  # 记录推理结束时间
+            self.logger.info(f"YOLO 推理耗时: {end_time - start_time:.3f} 秒")
 
-            # 处理检测结果
-            detections = []
+            detections = []  # 存储检测结果
             for result in results:
-                boxes = result.boxes
+                boxes = result.boxes  # 获取检测框信息
                 for box in boxes:
-                    # 获取类别信息
-                    cls_id = int(box.cls[0])
-                    cls_name = result.names[cls_id]
+                    cls_id = int(box.cls[0])  # 获取类别ID
+                    cls_name = result.names[cls_id]  # 根据ID获取类别名称
 
-                    # 如果不在目标类别中，跳过
+                    # 如果检测的类别不在目标类别列表中，则跳过
                     if cls_name not in self.config.TARGET_CLASSES:
                         continue
 
-                    # 获取置信度和边界框
-                    confidence = float(box.conf[0])
-                    xyxy = box.xyxy[0].tolist()  # 转换为列表格式
+                    confidence = float(box.conf[0])  # 获取置信度
+                    xyxy = box.xyxy[0].tolist()  # 获取边界框坐标并转换为列表
 
-                    # 估算目标距离
+                    # 估算物体距离
                     distance = self.estimate_distance(
                         bbox=xyxy,
-                        frame_width=frame.shape[1],  # 使用当前帧的宽度
-                        focal_length=500,  # 摄像头焦距
-                        real_object_width=0.5  # 目标实际宽度（根据目标类型调整）
+                        frame_width=frame.shape[1],  # 图像宽度
+                        cls_name=cls_name  # 物体类别
                     )
 
-                    # 添加到检测结果
+                    # 如果物体距离不在有效范围内，跳过
+                    if not (self.config.MIN_DISTANCE <= distance <= self.config.MAX_DISTANCE):
+                        self.logger.debug(f"物体 '{cls_name}' 被过滤，距离: {distance} 米")
+                        continue
+
+                    # 保存检测结果
                     detection = {
                         'class': cls_name,
                         'confidence': confidence,
@@ -108,13 +121,15 @@ class ObjectDetector:
                     }
                     detections.append(detection)
 
-            # 按置信度排序并限制检测数量
-            detections.sort(key=lambda x: x['confidence'], reverse=True)
-            detections = detections[:self.config.MAX_DETECTIONS]
-
-            return detections
+            # 过滤并排序检测结果
+            return sorted(
+                [det for det in detections if det['confidence'] >= self.config.CONFIDENCE_THRESHOLD],
+                key=lambda x: x['confidence'],
+                reverse=True
+            )[:self.config.MAX_DETECTIONS]  # 只保留前N个检测结果
 
         except Exception as e:
+            # 捕获推理过程中的错误并记录
             self.logger.error(f"检测过程出错: {str(e)}")
             return []
 
@@ -129,7 +144,7 @@ class ObjectDetector:
         Returns:
             绘制了检测框的图像帧
         """
-        img = frame.copy()
+        img = frame.copy()  # 复制输入帧
         for det in detections:
             # 获取边界框坐标
             x1, y1, x2, y2 = map(int, det['bbox'])

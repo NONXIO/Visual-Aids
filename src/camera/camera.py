@@ -2,7 +2,7 @@
 import cv2
 import threading
 from queue import Queue
-from .config import CameraConfig
+from .camera_config import CameraConfig
 from src.utils.logger import setup_logger
 
 class Camera:

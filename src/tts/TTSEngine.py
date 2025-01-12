@@ -3,6 +3,7 @@ import threading
 import queue
 from .tts import TextToSpeech
 from src.utils.logger import setup_logger
+from src.tts.tts_config import TTSConfig
 
 class TTSEngine:
     """
@@ -24,6 +25,11 @@ class TTSEngine:
         # 标记当前是否正在“说话”（避免 stop() 过程中出现竞争）
         self.is_speaking = threading.Event()
 
+        # 最大播报距离
+        self.max_speech_distance = TTSConfig.MAX_SPEECH_DISTANCE
+        # 物体优先级字典
+        self.object_priorities = TTSConfig.OBJECT_PRIORITIES
+
         # 创建工作线程（非 daemon），方便在主线程中 join 等待其退出
         self.worker_thread = threading.Thread(
             target=self._process_queue,
@@ -32,13 +38,29 @@ class TTSEngine:
         )
         self.worker_thread.start()
 
-    def speak(self, text: str):
+    def speak(self, detections):
         """
-        对外接口：将要播报的文本放入队列。
-        在网络正常时会优先使用 gTTS，若出现异常则自动切换 pyttsx3。
+        根据检测结果生成播报文本。
+        只播报距离小于 max_speech_distance 的物体，并按优先级排序。
+
+        Args:
+            detections (List[Dict]): 检测结果列表。
         """
-        if not self.stop_event.is_set():
-            self.queue.put(text)
+        # 过滤并排序检测结果
+        filtered_detections = [
+            det for det in detections if det['distance'] <= self.max_speech_distance
+        ]
+        sorted_detections = sorted(
+            filtered_detections,
+            key=lambda x: self.object_priorities.get(x['class'], 100)  # 默认优先级最低
+        )
+
+        # 生成播报文本
+        if sorted_detections:
+            descriptions = [f"{det['class']}，{det['distance']}米" for det in sorted_detections]
+            speech_text = "检测到：" + "，".join(descriptions)
+            if not self.stop_event.is_set():
+                self.queue.put(speech_text)
 
     def _process_queue(self):
         """

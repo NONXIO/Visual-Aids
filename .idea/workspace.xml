@@ -4,13 +4,22 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8981b858-8988-4c9e-aafb-1966a3f97bae" name="Changes" comment="更新readme">
+    <list default="true" id="8981b858-8988-4c9e-aafb-1966a3f97bae" name="Changes" comment="mian 更新，test版本使用MP4作为输入，优化了音频播放频率，ocr检测待更新">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/logs/app.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/app.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/detector/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detector/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/camera/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/camera/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/camera/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/camera/camera.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/camera/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/camera/camera_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/detector/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detector/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/detector/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detector/yolo_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/detector/yolo.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detector/yolo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ocr/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ocr/ocr_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ocr/ocr.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ocr/ocr.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tts/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tts/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tts/TTSEngine.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tts/TTSEngine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tts/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tts/tts_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tts/tts.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tts/tts.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/utils_config.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,7 +169,8 @@
       <workItem from="1736112754960" duration="172000" />
       <workItem from="1736280691641" duration="1294000" />
       <workItem from="1736299374624" duration="6637000" />
-      <workItem from="1736309571143" duration="48000" />
+      <workItem from="1736309571143" duration="301000" />
+      <workItem from="1736666501131" duration="5002000" />
     </task>
     <task id="LOCAL-00001" summary="Init project">
       <option name="closed" value="true" />
@@ -226,7 +236,15 @@
       <option name="project" value="LOCAL" />
       <updated>1735834353097</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="mian 更新，test版本使用MP4作为输入，优化了音频播放频率，ocr检测待更新">
+      <option name="closed" value="true" />
+      <created>1736309690184</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1736309690184</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -250,10 +268,11 @@
     <MESSAGE value="语音模块上线，readme update." />
     <MESSAGE value="OCR 模块上线，识别逻辑待更新" />
     <MESSAGE value="更新readme" />
-    <option name="LAST_COMMIT_MESSAGE" value="更新readme" />
+    <MESSAGE value="mian 更新，test版本使用MP4作为输入，优化了音频播放频率，ocr检测待更新" />
+    <option name="LAST_COMMIT_MESSAGE" value="mian 更新，test版本使用MP4作为输入，优化了音频播放频率，ocr检测待更新" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Visual_Aids$main.coverage" NAME="main 覆盖结果" MODIFIED="1736299967024" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
-    <SUITE FILE_PATH="coverage/Visual_Aids$test.coverage" NAME="test 覆盖结果" MODIFIED="1736309393051" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/Visual_Aids$test.coverage" NAME="test 覆盖结果" MODIFIED="1736309847590" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
   </component>
 </project>
