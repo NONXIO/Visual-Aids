@@ -38,28 +38,60 @@ class ObjectDetector:
                 raise RuntimeError(f"无法加载模型: {str(ex)}")
 
     @staticmethod
-    def estimate_distance(bbox, frame_width, focal_length=500, cls_name=None):
+    def estimate_distance(bbox, focal_length=500, cls_name=None, frame_width=None):
         """
         根据边界框估算目标与摄像头的距离。
 
+        使用针孔相机模型公式：距离 = (物体实际宽度 * 焦距) / 物体像素宽度
+        可根据图像分辨率动态调整焦距，提高距离估算准确性。
+
         Args:
             bbox (List[float]): 边界框 [x1, y1, x2, y2]。
-            frame_width (int): 图像帧的宽度。
-            focal_length (float): 摄像头的焦距。
-            cls_name (str): 目标物体类别。
+            focal_length (float): 基准焦距，默认为500。
+            cls_name (str): 目标物体类别，用于查找实际宽度。
+            frame_width (int, optional): 图像帧的宽度，用于焦距调整。
 
         Returns:
-            float: 估算的距离（单位：米）。
+            float: 估算的距离（单位：米），保留两位小数。
         """
-        object_width_in_pixels = bbox[2] - bbox[0]  # 计算物体在图像中的宽度
-        if object_width_in_pixels == 0:
-            return float('inf')  # 防止除零错误
+        # 计算物体在图像中的宽度（像素）
+        object_width_in_pixels = bbox[2] - bbox[0]
 
-        # 获取物体的实际宽度（如果类别未知，使用默认值）
+        # 防止除零错误
+        if object_width_in_pixels <= 0:
+            return float('inf')
+
+        # 获取物体的实际宽度（如果类别未知，使用默认值0.5米）
         real_object_width = DetectorConfig.OBJECT_REAL_WIDTHS.get(cls_name, 0.5)
-        # 使用公式计算距离
-        distance = (real_object_width * focal_length) / object_width_in_pixels
-        return round(distance, 2)  # 返回保留两位小数的距离
+
+        # 根据图像宽度调整焦距（假设标准宽度为640像素）
+        adjusted_focal_length = focal_length
+        if frame_width is not None:
+            standard_width = 640
+            adjusted_focal_length = focal_length * (frame_width / standard_width)
+
+        # 使用针孔相机模型计算距离
+        distance = (real_object_width * adjusted_focal_length) / object_width_in_pixels
+
+        # 应用非线性校正（可选，适用于近距离和远距离）
+        # 这里使用简单的校正因子，实际应用中可能需要更复杂的校正
+        correction_factor = 1.0
+        if distance < 1.0:
+            # 近距离校正（减少低估）
+            correction_factor = 1.1
+        elif distance > 5.0:
+            # 远距离校正（减少高估）
+            correction_factor = 0.9
+
+        corrected_distance = distance * correction_factor
+
+        # 确保距离在合理范围内
+        min_distance = DetectorConfig.MIN_DISTANCE
+        max_distance = DetectorConfig.MAX_DISTANCE
+        clamped_distance = max(min_distance, min(corrected_distance, max_distance))
+
+        # 返回保留两位小数的距离
+        return round(clamped_distance, 2)
 
     def detect(self, frame: np.ndarray) -> List[Dict[str, Union[str, float, List[float]]]]:
         """

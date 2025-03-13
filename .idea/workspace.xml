@@ -4,22 +4,20 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8981b858-8988-4c9e-aafb-1966a3f97bae" name="Changes" comment="mian 更新，test版本使用MP4作为输入，优化了音频播放频率，ocr检测待更新">
+    <list default="true" id="8981b858-8988-4c9e-aafb-1966a3f97bae" name="Changes" comment="引入距离限制以及物体优先级分类。优化语音播报逻辑。优化detector和ocr模块">
+      <change afterPath="$PROJECT_DIR$/src/camera/threaded_camera.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/controller/__init__.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/controller/detection_controller.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/detector/detection_config.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/detector/detection_utils.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/utils/resource_manager.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/logs/app.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/app.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/camera/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/camera/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/camera/camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/camera/camera.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/camera/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/camera/camera_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/detector/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detector/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/detector/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detector/yolo_config.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/detector/yolo.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detector/yolo.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ocr/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ocr/ocr_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/ocr/ocr.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/ocr/ocr.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/detector/yolo_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/detector/yolo_config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/test.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tts/TTSEngine.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tts/TTSEngine.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tts/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tts/tts_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/tts/tts.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tts/tts.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/utils_config.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,7 +84,7 @@
       <recent name="F:\Visual-Aids\src" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.test">
+  <component name="RunManager">
     <configuration name="main" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="VisualAids" />
       <option name="ENV_FILES" value="" />
@@ -143,8 +141,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-js-predefined-d6986cc7102b-deb605915726-JavaScript-PY-243.22562.220" />
-        <option value="bundled-python-sdk-0fc6c617c4bd-9a18a617cbe4-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.22562.220" />
+        <option value="bundled-js-predefined-d6986cc7102b-1632447f56bf-JavaScript-PY-243.25659.43" />
+        <option value="bundled-python-sdk-181015f7ab06-4df51de95216-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-243.25659.43" />
       </set>
     </attachedChunks>
   </component>
@@ -170,7 +168,14 @@
       <workItem from="1736280691641" duration="1294000" />
       <workItem from="1736299374624" duration="6637000" />
       <workItem from="1736309571143" duration="301000" />
-      <workItem from="1736666501131" duration="5002000" />
+      <workItem from="1736666501131" duration="5219000" />
+      <workItem from="1736748286237" duration="971000" />
+      <workItem from="1736801448690" duration="102000" />
+      <workItem from="1737083879209" duration="3670000" />
+      <workItem from="1737773086419" duration="701000" />
+      <workItem from="1739161819600" duration="188000" />
+      <workItem from="1739394671881" duration="1709000" />
+      <workItem from="1741882482405" duration="4324000" />
     </task>
     <task id="LOCAL-00001" summary="Init project">
       <option name="closed" value="true" />
@@ -244,7 +249,15 @@
       <option name="project" value="LOCAL" />
       <updated>1736309690184</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="引入距离限制以及物体优先级分类。优化语音播报逻辑。优化detector和ocr模块">
+      <option name="closed" value="true" />
+      <created>1736672639782</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1736672639782</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -269,10 +282,11 @@
     <MESSAGE value="OCR 模块上线，识别逻辑待更新" />
     <MESSAGE value="更新readme" />
     <MESSAGE value="mian 更新，test版本使用MP4作为输入，优化了音频播放频率，ocr检测待更新" />
-    <option name="LAST_COMMIT_MESSAGE" value="mian 更新，test版本使用MP4作为输入，优化了音频播放频率，ocr检测待更新" />
+    <MESSAGE value="引入距离限制以及物体优先级分类。优化语音播报逻辑。优化detector和ocr模块" />
+    <option name="LAST_COMMIT_MESSAGE" value="引入距离限制以及物体优先级分类。优化语音播报逻辑。优化detector和ocr模块" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Visual_Aids$main.coverage" NAME="main 覆盖结果" MODIFIED="1736299967024" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
-    <SUITE FILE_PATH="coverage/Visual_Aids$test.coverage" NAME="test 覆盖结果" MODIFIED="1736309847590" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/Visual_Aids$main.coverage" NAME="main 覆盖结果" MODIFIED="1741886249234" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/Visual_Aids$test.coverage" NAME="test 覆盖结果" MODIFIED="1741886816111" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
   </component>
 </project>
