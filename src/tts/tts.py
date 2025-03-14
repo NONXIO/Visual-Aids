@@ -2,7 +2,6 @@
 import os
 import tempfile
 import subprocess
-import pyttsx3
 import threading
 import time
 from gtts import gTTS
@@ -15,20 +14,15 @@ class TextToSpeech:
     TextToSpeech 类：负责文本转语音的功能。
 
     特性：
-    - 优先使用在线 gTTS，若失败则回退到离线 pyttsx3。
+    - 使用在线 gTTS 将文本转换为语音。
     - 支持动态中断当前语音播报，确保最新检测内容及时播报。
     """
 
     def __init__(self):
         self.logger = setup_logger("TTS")  # 初始化日志记录器
 
-        # 初始化语言和优先使用在线TTS的配置
+        # 初始化语言配置
         self.language = TTSConfig.DEFAULT_LANGUAGE
-        self.use_online_tts_first = TTSConfig.USE_ONLINE_TTS_FIRST
-
-        # 初始化 pyttsx3 引擎和相关锁
-        self.engine_lock = threading.Lock()
-        self._initialize_pyttsx3()
 
         # ffplay 播放器相关锁和进程
         self.process_lock = threading.Lock()
@@ -38,46 +32,20 @@ class TextToSpeech:
         self.speaking_lock = threading.Lock()
         self.speaking = False
 
-    def _initialize_pyttsx3(self):
-        """
-        初始化 pyttsx3 引擎并设置默认语音属性。
-        """
-        try:
-            self.engine = pyttsx3.init()
-            self.engine.setProperty('rate', TTSConfig.DEFAULT_RATE)  # 设置语速
-            self.engine.setProperty('volume', TTSConfig.DEFAULT_VOLUME)  # 设置音量
-
-            # 尝试设置指定的语音
-            voices = self.engine.getProperty('voices')
-            for voice in voices:
-                if TTSConfig.DEFAULT_VOICE_NAME in voice.name:
-                    self.engine.setProperty('voice', voice.id)
-                    break
-            else:
-                self.logger.warning(f"未找到指定语音 '{TTSConfig.DEFAULT_VOICE_NAME}'，使用默认语音。")
-        except Exception as e:
-            self.logger.error(f"[TTS 错误] 初始化 pyttsx3 失败: {str(e)}")
-            self.engine = None
-
     def speak(self, text: str, speed: float = TTSConfig.DEFAULT_PLAYBACK_SPEED):
         """
         进行语音播报。
 
         Args:
             text (str): 要播报的文本内容。
-            speed (float): 播报速度（在线模式下生效）。
+            speed (float): 播报速度。
         """
         self.interrupt()  # 中断当前语音播报
         with self.speaking_lock:
             self.speaking = True
 
         try:
-            if self.use_online_tts_first:
-                online_success = self._speak_online(text, speed)
-                if not online_success:
-                    self._speak_offline(text)
-            else:
-                self._speak_offline(text)
+            self._speak_online(text, speed)
         finally:
             with self.speaking_lock:
                 self.speaking = False
@@ -88,16 +56,13 @@ class TextToSpeech:
         """
         self.stop()  # 停止当前播放
 
-    def _speak_online(self, text: str, speed: float) -> bool:
+    def _speak_online(self, text: str, speed: float):
         """
         使用 gTTS 在线生成语音并通过 ffplay 播放。
 
         Args:
             text (str): 要播报的文本内容。
             speed (float): 播放速度。
-
-        Returns:
-            bool: 在线播报是否成功。
         """
         try:
             with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3", dir=TTSConfig.TEMP_AUDIO_DIR) as temp_file:
@@ -112,10 +77,8 @@ class TextToSpeech:
             # 播放生成的音频
             self._play_audio_with_ffplay(temp_path, speed)
             os.remove(temp_path)
-            return True
         except Exception as e:
-            self.logger.error(f"[TTS 错误] gTTS + ffplay 播放失败，将尝试离线 TTS: {str(e)}")
-            return False
+            self.logger.error(f"[TTS 错误] gTTS + ffplay 播放失败: {str(e)}")
 
     def _play_audio_with_ffplay(self, audio_path: str, speed: float):
         """
@@ -170,34 +133,8 @@ class TextToSpeech:
                     self.logger.error(f"终止 ffplay 进程失败: {e}")
                     self.current_process.kill()
 
-    def _speak_offline(self, text: str):
-        """
-        使用 pyttsx3 进行离线语音播报。
-
-        Args:
-            text (str): 要播报的文本内容。
-        """
-        if not self.engine:
-            self.logger.error("pyttsx3 引擎初始化失败，无法离线播报！")
-            return
-
-        with self.engine_lock:
-            try:
-                self.engine.say(text)
-                self.engine.runAndWait()
-            except Exception as e:
-                self.logger.error(f"[TTS 错误] pyttsx3 播报失败: {str(e)}")
-
     def stop(self):
         """
-        停止当前所有语音播报，包括 ffplay 和 pyttsx3。
+        停止当前所有语音播报。
         """
         self._terminate_ffplay()
-        with self.engine_lock:
-            if self.speaking:
-                try:
-                    self.engine.stop()
-                except Exception as e:
-                    self.logger.error(f"停止 pyttsx3 引擎失败: {str(e)}")
-                finally:
-                    self.speaking = False

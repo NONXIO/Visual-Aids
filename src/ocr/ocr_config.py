@@ -1,5 +1,6 @@
 # src/ocr/config.py
 class OCRConfig:
     """OCR 模块配置"""
-    # 选择 OCR 模式：'paddle' 或 'tesseract'
-    OCR_MODE = 'tesseract'  # 默认使用 Tesseract OCR
+    # PaddleOCR 配置可以在这里添加
+    LANGUAGE = 'ch'  # 默认中文
+    USE_GPU = True  # 默认不使用 GPU

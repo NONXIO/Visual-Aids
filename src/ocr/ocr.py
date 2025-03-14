@@ -1,39 +1,23 @@
 # src/ocr/ocr.py
 import cv2
-import pytesseract
-import tempfile
-import os
 from paddleocr import PaddleOCR
-from src.ocr.ocr_config import OCRConfig
 from src.utils.logger import setup_logger
 
 
 class OCR:
-    """OCR 模块，用于从图像中提取文本信息"""
+    """OCR 模块，用于从图像中提取文本信息，使用在线 PaddleOCR"""
 
-    def __init__(self, mode=None):
+    def __init__(self):
         """
-        初始化 OCR 模块，根据配置或参数选择使用 PaddleOCR 或 Tesseract OCR
-
-        Args:
-            mode (str): OCR 模式，可选 'paddle' 或 'tesseract'。默认使用配置文件中的模式。
+        初始化 OCR 模块，使用 PaddleOCR
         """
         self.logger = setup_logger('ocr')
-        self.ocr_mode = mode or OCRConfig.OCR_MODE  # 优先使用传入的 mode 参数
         self._initialize_ocr_engine()  # 初始化 OCR 引擎
 
     def _initialize_ocr_engine(self):
-        """根据模式初始化 OCR 引擎"""
-        if self.ocr_mode == 'paddle':
-            self.logger.info("初始化 PaddleOCR 模式")
-            self.ocr_engine = PaddleOCR(use_gpu=False)
-            self.use_paddle_ocr = True
-        elif self.ocr_mode == 'tesseract':
-            self.logger.info("初始化 Tesseract OCR 模式")
-            pytesseract.pytesseract.tesseract_cmd = r"C:\\Program Files\\Tesseract-OCR\\tesseract.exe"
-            self.use_paddle_ocr = False
-        else:
-            raise ValueError(f"未知的 OCR 模式: {self.ocr_mode}")
+        """初始化 PaddleOCR 引擎"""
+        self.logger.info("初始化 PaddleOCR 模式")
+        self.ocr_engine = PaddleOCR(use_gpu=False)
 
     def preprocess_image(self, image):
         """
@@ -82,28 +66,10 @@ class OCR:
         """
         try:
             preprocessed_image = self.preprocess_image(image)  # 图像预处理
-            if self.use_paddle_ocr:
-                # 使用 PaddleOCR
-                results = self.ocr_engine.ocr(preprocessed_image, cls=True)
-                text = "\n".join([line[1][0] for line in results[0]]) if results else ""
-            else:
-                # 使用 Tesseract OCR
-                temp_file_path = None
-                try:
-                    # 创建唯一临时文件
-                    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as temp_file:
-                        temp_file_path = temp_file.name
-                        cv2.imwrite(temp_file_path, preprocessed_image)
 
-                    # 调用 Tesseract OCR
-                    text = pytesseract.image_to_string(temp_file_path, lang='chi_sim+eng')
-                finally:
-                    # 删除临时文件
-                    if temp_file_path and os.path.exists(temp_file_path):
-                        try:
-                            os.remove(temp_file_path)
-                        except Exception as e:
-                            self.logger.warning(f"无法删除临时文件: {temp_file_path}, 错误: {str(e)}")
+            # 使用 PaddleOCR
+            results = self.ocr_engine.ocr(preprocessed_image, cls=True)
+            text = "\n".join([line[1][0] for line in results[0]]) if results else ""
 
             # 清理并格式化提取的文本
             cleaned_text = self.clean_text(text)
@@ -113,4 +79,3 @@ class OCR:
         except Exception as e:
             self.logger.error(f"OCR 提取失败: {str(e)}")
             return ""
-

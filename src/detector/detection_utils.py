@@ -53,7 +53,8 @@ def prioritize_detections(detections, max_items=None):
             scored_detections.append((total_score, det))
 
         # 按分数排序并取前N个
-        scored_detections.sort(reverse=True)  # 按分数从高到低排序
+        # 修复比较问题：使用第一个元素(score)作为比较键
+        scored_detections.sort(key=lambda x: x[0], reverse=True)  # 按分数从高到低排序
         return [det for _, det in scored_detections][:max_items]
     except Exception as e:
         logger.error(f"优先级排序时发生错误: {str(e)}")

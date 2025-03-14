@@ -10,7 +10,7 @@ class TTSEngine:
     优化后的 TTS 引擎：
       - 通过一个工作线程从队列中取要播报的文本；
       - 在 stop() 中退出，不再强行杀线程；
-      - 若需要在线 TTS，则先调用在线 gTTS，失败后自动切换离线 pyttsx3。
+      - 使用在线 gTTS 进行文本到语音的转换。
     """
 
     def __init__(self):
@@ -22,7 +22,7 @@ class TTSEngine:
         self.queue = queue.Queue()
         # 当需要停止时，触发此事件，让子线程优雅退出
         self.stop_event = threading.Event()
-        # 标记当前是否正在“说话”（避免 stop() 过程中出现竞争）
+        # 标记当前是否正在"说话"（避免 stop() 过程中出现竞争）
         self.is_speaking = threading.Event()
 
         # 最大播报距离
@@ -38,29 +38,15 @@ class TTSEngine:
         )
         self.worker_thread.start()
 
-    def speak(self, detections):
+    def speak(self, text):
         """
-        根据检测结果生成播报文本。
-        只播报距离小于 max_speech_distance 的物体，并按优先级排序。
+        将文本放入队列中等待播报。
 
         Args:
-            detections (List[Dict]): 检测结果列表。
+            text (str): 要播报的文本。
         """
-        # 过滤并排序检测结果
-        filtered_detections = [
-            det for det in detections if det['distance'] <= self.max_speech_distance
-        ]
-        sorted_detections = sorted(
-            filtered_detections,
-            key=lambda x: self.object_priorities.get(x['class'], 100)  # 默认优先级最低
-        )
-
-        # 生成播报文本
-        if sorted_detections:
-            descriptions = [f"{det['class']}，{det['distance']}米" for det in sorted_detections]
-            speech_text = "检测到：" + "，".join(descriptions)
-            if not self.stop_event.is_set():
-                self.queue.put(speech_text)
+        if not self.stop_event.is_set():
+            self.queue.put(text)
 
     def _process_queue(self):
         """
@@ -93,7 +79,7 @@ class TTSEngine:
         停止 TTS 引擎：
           - 通知子线程停止处理队列；
           - 清空队列；
-          - 停止正在进行的音频播放（ffplay / pyttsx3）；
+          - 停止正在进行的音频播放；
           - join 子线程，等待退出。
         """
         self.logger.info("正在停止 TTS 引擎...")

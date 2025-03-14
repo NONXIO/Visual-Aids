@@ -101,7 +101,8 @@ class DetectionController:
             # 只在内容变化或足够时间过去后播报
             if (speech_text and speech_text != self.last_tts_data['content'] or
                     current_time - self.last_tts_data['time'] >= DetectionConfig.TTS_THROTTLE_SECONDS):
-                self.tts_engine.speak(speech_text)
+                # 直接向TTS引擎传递检测结果列表，而不是文本
+                self.tts_engine.speak(latest_detections)
                 self.last_tts_data['content'] = speech_text
                 self.last_tts_data['time'] = current_time
         except Exception as e:
