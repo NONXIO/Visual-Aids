@@ -17,7 +17,7 @@ class OCR:
     def _initialize_ocr_engine(self):
         """初始化 PaddleOCR 引擎"""
         self.logger.info("初始化 PaddleOCR 模式")
-        self.ocr_engine = PaddleOCR(use_gpu=False)
+        self.ocr_engine = PaddleOCR(use_gpu=False, show_log=False)
 
     def preprocess_image(self, image):
         """

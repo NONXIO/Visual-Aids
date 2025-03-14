@@ -68,7 +68,7 @@ def cleanup_resources(cap=None, tts_engine=None):
         except Exception as e:
             logger.error(f"释放视频资源时发生错误: {str(e)}")
 
-    # 关闭OpenCV窗口
+    # 尝试关闭OpenCV窗口，如果存在的话
     try:
         cv2.destroyAllWindows()
         # 确保窗口正确关闭

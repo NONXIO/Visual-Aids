@@ -1,6 +1,9 @@
 class DetectionConfig:
     """检测系统配置参数"""
 
+    # GUI配置
+    USE_GUI = True  # 是否使用GUI界面（设置为False可在无GUI环境下运行）
+
     # 队列配置
     QUEUE_MAX_SIZE = 30
     DETECTION_HISTORY_SECONDS = 1.0
@@ -31,4 +34,3 @@ class DetectionConfig:
         'fire hydrant': 4,  # 消防栓
         # 可以根据需要添加更多类别
     }
-
