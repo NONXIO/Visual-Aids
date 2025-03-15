@@ -23,22 +23,47 @@ class ThreadedVideoCapture:
             self.logger.error(f"无法打开视频源: {source}")
             raise ValueError(f"无法打开视频源: {source}")
 
+        # 获取视频的原始帧率
+        self.original_fps = self.cap.get(cv2.CAP_PROP_FPS)
+        self.logger.info(f"视频原始帧率: {self.original_fps}")
+
+        # 如果是文件视频且帧率有效，则使用它，否则默认使用30fps
+        self.fps = self.original_fps if self.original_fps > 0 else 30.0
+        self.frame_time = 1.0 / self.fps
+
         self.ret, self.frame = self.cap.read()
         self.running = True
         self.lock = threading.Lock()
+
+        # 添加帧计时器，用于控制帧率
+        self.last_frame_time = time.time()
+
+        # 创建并启动线程
         self.thread = threading.Thread(target=self._update, daemon=True)
         self.thread.start()
         self.logger.info("视频捕获线程已启动")
 
     def _update(self):
-        """后台线程：持续读取视频帧"""
+        """后台线程：持续读取视频帧，但尊重原始帧率"""
         while self.running:
             if not self.cap.isOpened():
                 self.logger.error("视频源已关闭")
                 self.running = False
                 break
 
+            # 添加帧率控制
+            current_time = time.time()
+            elapsed = current_time - self.last_frame_time
+
+            # 等待直到达到正确的帧间隔
+            sleep_time = max(0, self.frame_time - elapsed)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
+
+            # 读取下一帧
             ret, frame = self.cap.read()
+            self.last_frame_time = time.time()
+
             with self.lock:
                 self.ret, self.frame = ret, frame
 
@@ -46,8 +71,6 @@ class ThreadedVideoCapture:
                 self.logger.info("视频播放结束")
                 self.running = False
                 break
-
-            time.sleep(0.01)  # 小延迟，防止CPU占用过高
 
     def read(self):
         """

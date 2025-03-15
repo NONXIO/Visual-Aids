@@ -74,6 +74,8 @@ class TTSEngine:
 
         self.logger.info("TTS 工作线程检测到停止事件，已退出。")
 
+    # 在src/tts/TTSEngine.py中修改stop方法
+
     def stop(self):
         """
         停止 TTS 引擎：
@@ -82,28 +84,37 @@ class TTSEngine:
           - 停止正在进行的音频播放；
           - join 子线程，等待退出。
         """
-        self.logger.info("正在停止 TTS 引擎...")
-        # 通知子线程退出循环
-        self.stop_event.set()
+        try:
+            self.logger.info("正在停止 TTS 引擎...")
+            # 通知子线程退出循环
+            self.stop_event.set()
 
-        # 清空队列，防止还有大量未处理的文本
-        while not self.queue.empty():
-            try:
-                self.queue.get_nowait()
-                self.queue.task_done()
-            except queue.Empty:
-                break
+            # 清空队列，防止还有大量未处理的文本
+            while not self.queue.empty():
+                try:
+                    self.queue.get_nowait()
+                    self.queue.task_done()
+                except queue.Empty:
+                    break
 
-        # 如果此时正在说话，先尝试停止
-        if self.is_speaking.is_set():
-            self.tts.stop()
+            # 如果此时正在说话，先尝试停止
+            if self.is_speaking.is_set():
+                try:
+                    self.tts.stop()
+                except Exception as e:
+                    self.logger.error(f"停止语音时出错: {str(e)}")
 
-        # 等待子线程退出
-        if self.worker_thread.is_alive():
-            self.worker_thread.join(timeout=5.0)
+            # 等待子线程退出，使用更短的超时时间并捕获可能的异常
             if self.worker_thread.is_alive():
-                self.logger.warning("TTS 工作线程未能在超时时间内正常退出，可能还在阻塞。")
-            else:
-                self.logger.info("TTS 工作线程已退出。")
+                try:
+                    self.worker_thread.join(timeout=2.0)
+                    if self.worker_thread.is_alive():
+                        self.logger.warning("TTS 工作线程未能在超时时间内正常退出")
+                    else:
+                        self.logger.info("TTS 工作线程已退出")
+                except Exception as e:
+                    self.logger.error(f"等待工作线程退出时出错: {str(e)}")
 
-        self.logger.info("TTS 引擎已停止。")
+            self.logger.info("TTS 引擎已停止")
+        except Exception as e:
+            self.logger.error(f"停止 TTS 引擎时出错: {str(e)}")

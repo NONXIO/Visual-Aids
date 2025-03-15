@@ -40,7 +40,6 @@ def initialize_modules():
         logger.error(f"初始化模块时发生错误: {str(e)}\n{traceback.format_exc()}")
         raise
 
-
 def cleanup_resources(cap=None, tts_engine=None):
     """
     清理所有资源

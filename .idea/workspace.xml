@@ -5,7 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8981b858-8988-4c9e-aafb-1966a3f97bae" name="Changes" comment="env update">
+      <change afterPath="$PROJECT_DIR$/note.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logs/app.log" beforeDir="false" afterPath="$PROJECT_DIR$/logs/app.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/camera/threaded_camera.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/camera/threaded_camera.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/tts/TTSEngine.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/tts/TTSEngine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/resource_manager.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/resource_manager.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -180,7 +186,8 @@
       <workItem from="1741937397097" duration="808000" />
       <workItem from="1741962846303" duration="74000" />
       <workItem from="1741963250901" duration="4633000" />
-      <workItem from="1742052098294" duration="616000" />
+      <workItem from="1742052098294" duration="2080000" />
+      <workItem from="1742056079530" duration="79000" />
     </task>
     <task id="LOCAL-00001" summary="Init project">
       <option name="closed" value="true" />
@@ -294,7 +301,15 @@
       <option name="project" value="LOCAL" />
       <updated>1741973917734</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="env update">
+      <option name="closed" value="true" />
+      <created>1742054768244</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1742054768244</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -327,7 +342,7 @@
     <option name="LAST_COMMIT_MESSAGE" value="env update" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Visual_Aids$main.coverage" NAME="main 覆盖结果" MODIFIED="1741973829197" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
+    <SUITE FILE_PATH="coverage/Visual_Aids$main.coverage" NAME="main 覆盖结果" MODIFIED="1742056021895" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
     <SUITE FILE_PATH="coverage/Visual_Aids$test.coverage" NAME="test 覆盖结果" MODIFIED="1741890951663" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
     <SUITE FILE_PATH="coverage/Visual_Aids$env_test.coverage" NAME="env_test 覆盖结果" MODIFIED="1741971775103" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/src" />
   </component>

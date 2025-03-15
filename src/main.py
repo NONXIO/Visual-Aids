@@ -1,4 +1,5 @@
 import sys
+import time
 import cv2
 import traceback
 from src.camera.threaded_camera import ThreadedVideoCapture
@@ -7,6 +8,8 @@ from src.detector.detection_config import DetectionConfig
 from src.utils.resource_manager import initialize_modules, cleanup_resources
 from src.utils.logger import setup_logger
 
+
+# 在main.py中改进主函数的退出处理
 
 def main():
     """
@@ -35,12 +38,17 @@ def main():
         # 启动线程化视频捕获
         try:
             cap = ThreadedVideoCapture(DetectionConfig.VIDEO_PATH)
+            # 获取视频帧率
+            fps = cap.fps
+            frame_time = 1.0 / fps
+            logger.info(f"视频帧率: {fps}，帧间隔: {frame_time:.4f}秒")
         except Exception as e:
             logger.error(f"初始化视频捕获失败: {str(e)}")
             raise
 
         logger.info("开始检测循环...")
         frame_count = 0
+        last_process_time = time.time()
 
         while True:
             # 从视频流中读取帧
@@ -49,9 +57,17 @@ def main():
                 logger.info("视频播放结束或读取帧失败")
                 break
 
+            current_time = time.time()
             frame_count += 1
+
             # 处理当前帧
             display_frame = controller.process_frame(frame)
+
+            # 显示帧率信息
+            if frame_count % 30 == 0:
+                fps_actual = 30 / (current_time - last_process_time) if current_time != last_process_time else 0
+                logger.info(f"当前处理帧率: {fps_actual:.2f} FPS")
+                last_process_time = current_time
 
             # 显示处理后的帧（如果支持GUI）
             if has_gui:
@@ -65,20 +81,20 @@ def main():
                 # 在无GUI模式下，每100帧打印一次状态
                 if frame_count % 100 == 0:
                     logger.info(f"已处理 {frame_count} 帧")
-                # 在无GUI模式下添加退出机制，例如处理特定数量的帧后退出
-                # 这里可以根据需要调整或添加其他退出条件
-                # if frame_count >= 1000:  # 例如处理1000帧后退出
-                #     logger.info("已达到预设帧数限制，退出程序")
-                #     break
 
     except KeyboardInterrupt:
         logger.info("检测循环因键盘中断而停止...")
     except Exception as e:
         logger.error(f"检测循环中发生错误: {str(e)}\n{traceback.format_exc()}")
     finally:
-        cleanup_resources(cap, tts_engine)
-        sys.exit(0)
-
+        # 在finally块中包装cleanup_resources以确保无论如何都会执行，并且不会因异常而中断
+        try:
+            cleanup_resources(cap, tts_engine)
+        except Exception as e:
+            logger.error(f"清理资源时发生致命错误: {str(e)}")
+        finally:
+            logger.info("程序退出")
+            sys.exit(0)
 
 if __name__ == "__main__":
     main()
